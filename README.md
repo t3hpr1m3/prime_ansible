@@ -6,6 +6,7 @@ auto <interface>
 iface <interface> inet static
         address <ip address>
         netmask <netmask>
+```
 
 ## Raspian
 `/etc/network/interfaces`

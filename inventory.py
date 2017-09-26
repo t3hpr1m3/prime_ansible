@@ -45,6 +45,16 @@ DEFAULT_INVENTORY = {
 					"type": "dhcp"
 				}
 			}
+		},
+		"beyond1": {
+			"vars": {
+				"ansible_ssh_user": "debian",
+				"ansible_host": "192.168.0.213",
+				"private_interface": {
+					"name": "eth0",
+					"type": "dhcp"
+				}
+			}
 		}
 	},
 	"groups": {
@@ -53,7 +63,8 @@ DEFAULT_INVENTORY = {
 		"dhcp-servers": { "hosts": ["pluto", "andromeda"] },
 		"dns-servers": { "hosts": ["pluto", "andromeda"] },
 		"vpn-servers": { "hosts": ["pluto"] },
-		"torrent-servers": { "hosts": ["torrents"] }
+		"torrent-servers": { "hosts": ["torrents"] },
+		"minecraft-servers": { "hosts": ["beyond1"] }
 	}
 }
 

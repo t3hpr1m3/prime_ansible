@@ -1,0 +1,54 @@
+- name: set the hostname
+  hostname:
+    name: "{{ hostname | default(inventory_hostname) }}"
+  tags: network
+
+- name: make the hostname permanent
+  copy:
+    content: "{{ hostname | default(inventory_hostname) }}.{{ domain_name }}"
+    dest: /etc/hostname
+    owner: root
+    group: root
+    mode: 0644
+  tags: network
+
+- name: remove the extra loopback interface
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^127\.0\.1\.1'
+    state: absent
+  tags: network
+
+- name: ensure the localhost entry is configured
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^127\.0\.0\.1'
+    line: '127.0.0.1 localhost {{ hostname | default(inventory_hostname) }}'
+    state: present
+  tags: network
+
+- name: ensure resolvconf is installed
+  apt:
+    name: resolvconf
+    state: present
+  tags: network
+
+- name: configure network interfaces
+  template:
+    src: 'etc/network/interfaces.j2'
+    dest: '/etc/network/interfaces.ansible'
+    owner: root
+    group: root
+    mode: 0644
+  tags: network
+
+- name: configure dhcpcd
+  template:
+    src: etc/dhcpcd.conf.j2
+    dest: /etc/dhcpcd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: delete dhcp leases
+  when: ansible_os_family == 'Debian' and ansible_lsb.id == 'Raspbian'
+  tags: network

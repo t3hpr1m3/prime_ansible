@@ -1,0 +1,4 @@
+---
+ferm_default_policy_input: DROP
+ferm_default_policy_output: ACCEPT
+ferm_default_policy_forward: ACCEPT

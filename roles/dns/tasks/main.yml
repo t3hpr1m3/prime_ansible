@@ -1,0 +1,48 @@
+---
+- name: ensure the bind packages are installed
+  apt:
+    name: '{{ item }}'
+    state: present
+    install_recommends: no
+  with_items:
+    - bind9
+    - dnsutils
+
+- name: ensure the configuration files are present
+  template:
+    src: '{{ item }}.j2'
+    dest: '/{{ item }}'
+    owner: root
+    group: bind
+    mode: 0660
+  with_items:
+    - etc/bind/named.conf.local
+  tags:
+    - configuration
+  notify: restart bind
+
+- name: ensure the zone files are present
+  template:
+    src: '{{ item }}.j2'
+    dest: '/{{ item }}'
+    owner: root
+    group: bind
+    mode: 0660
+  with_items:
+    - var/lib/bind/db.daprime.net
+    - var/lib/bind/db.daprime.net.inv
+  tags:
+    - configuration
+  notify: restart bind
+
+- name: ensure dns traffic is allowed
+  template:
+    src: etc/ferm/ferm.d/04-allow-dns.conf.j2
+    dest: /etc/ferm/ferm.d/04-allow-dns.conf
+    owner: root
+    group: bind
+    mode: 0660
+  notify: restart ferm
+  tags:
+    - configuration
+    - firewall

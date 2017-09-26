@@ -1,0 +1,10 @@
+---
+- name: delete dhcp leases
+  file:
+    path: '{{ item }}'
+    state: absent
+  with_items:
+    - /var/lib/dhcp/dhclient.leases
+    - /var/lib/dhcp/dhclient.{{ private_interface.name }}.leases
+    - /var/lib/dhcpcd5/dhcpcd-{{ private_interface.name }}.lease
+    - /var/lib/dhcpcd5/dhcpcd-{{ private_interface.name }}.lease6

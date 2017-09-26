@@ -1,0 +1,34 @@
+---
+- name: ensure the required group exists
+  group:
+    name: '{{ prime_group }}'
+    state: present
+  tags: users
+
+- name: ensure prime users can sudo without a password
+  copy:
+    content: "%{{ prime_group }} ALL=(ALL) NOPASSWD: ALL\n"
+    dest: /etc/sudoers.d/011-prime-nopasswd
+    owner: root
+    group: root
+    mode: 0440
+  tags: users
+
+- name: ensure required users exist
+  user:
+    name: "{{ item.key }}"
+    shell: /bin/bash
+    groups: "{{ prime_group }}"
+    password: "{{ prime_default_password }}"
+    update_password: on_create
+    state: present
+  with_dict: "{{ prime_users }}"
+  tags: users
+
+- name: install ssh keys
+  authorized_key:
+    user: "{{ item.key }}"
+    key: "https://github.com/{{ item.value.github_username }}.keys"
+    state: present
+  with_dict: "{{ prime_users }}"
+  tags: users

@@ -1,0 +1,31 @@
+---
+- name: ensure the dhcp packages are installed
+  apt:
+    name: isc-dhcp-server
+    state: present
+    install_recommends: no
+
+- name: ensure the proper interface is configured for traffic
+  lineinfile:
+    dest: /etc/default/isc-dhcp-server
+    regexp: '^INTERFACES='
+    line: 'INTERFACES="{{ internal_interface }}"'
+  notify: restart dhcp
+
+- name: ensure the configuration file is present
+  template:
+    src: etc/dhcp/dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+    owner: root
+    group: root
+    mode: 0660
+  notify: restart dhcp
+
+- name: ensure dhcp traffic is allowed
+  template:
+    src: etc/ferm/ferm.d/05-allow-dhcp.conf.j2
+    dest: /etc/ferm/ferm.d/05-allow-dhcp.conf
+    owner: root
+    group: root
+    mode: 0640
+  notify: restart ferm

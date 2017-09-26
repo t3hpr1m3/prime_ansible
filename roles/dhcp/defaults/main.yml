@@ -1,0 +1,4 @@
+---
+dhcpd_keys: []
+dhcpd_failovers: []
+dhcpd_subnets: []

@@ -1,0 +1,23 @@
+---
+- name: ensure the ntp-server packages are installed
+  apt:
+    name: ntp
+
+- name: ensure the ntp-server configuration exists
+  template:
+    src: etc/ntp.conf.j2
+    dest: /etc/ntp.conf
+    owner: root
+    group: root
+    mode: 0660
+  notify: restart ntp
+
+- name: ensure ntp is configured to start on boot
+  service:
+    name: ntp
+    enabled: yes
+
+- name: ensure ntp is running
+  service:
+    name: ntp
+    state: started

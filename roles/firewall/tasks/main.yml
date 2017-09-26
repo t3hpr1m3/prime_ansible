@@ -1,0 +1,80 @@
+---
+- name: ensure ipv4 forwarding is enabled
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  tags:
+    - configuration
+
+- name: ensure ufw is NOT installed
+  apt:
+    name: ufw
+    state: absent
+  tags:
+    - firewall
+
+- name: ensure the bridge utilities are installed
+  apt:
+    name: bridge-utils
+    state: present
+    install_recommends: no
+
+- name: ensure the bridge modules are loaded
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - bridge
+    - br_netfilter
+
+- name: ensure ferm is installed
+  apt:
+    name: ferm
+    state: present
+    install_recommends: no
+  notify: restart ferm
+  tags:
+    - firewall
+
+- name: ensure configuration directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+  with_items:
+    - /etc/ferm
+    - /etc/ferm/ferm.d
+  tags:
+    - configuration
+    - firewall
+
+- name: ensure the firewall configuration exists
+  template:
+    src: '{{ item }}.j2'
+    dest: '/{{ item }}'
+    owner: root
+    group: root
+    mode: 0664
+  with_items:
+    - etc/default/ferm
+    - etc/ferm/ferm.conf
+    - etc/ferm/ferm.d/00-allow-ssh.conf
+    - etc/ferm/ferm.d/01-allow-forwarding.conf
+    - etc/ferm/ferm.d/02-outbound-rules.conf
+    - etc/ferm/ferm.d/03-inbound-rules.conf
+  notify: restart ferm
+  tags:
+    - configuration
+    - firewall
+
+- name: ensure ferm is configured to start on boot
+  service:
+    name: ferm
+    enabled: yes
+  tags:
+    - firewall

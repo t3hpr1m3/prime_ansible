@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+
+domain ip {
+  table nat {
+    chain POSTROUTING {
+      {% set public_interface = hostvars[ansible_hostname]["public_interface"]["name"] %}
+      {% set private_interface = hostvars[ansible_hostname]["private_interface"]["name"] %}
+      {% set public_address = hostvars[ansible_hostname]["ansible_" ~ public_interface]["ipv4"]["network"] %}
+      {% set public_netmask = hostvars[ansible_hostname]["ansible_" ~ public_interface]["ipv4"]["netmask"] %}
+      {% set private_address = hostvars[ansible_hostname]["ansible_" ~ private_interface]["ipv4"]["network"] %}
+      {% set private_netmask = hostvars[ansible_hostname]["ansible_" ~ private_interface]["ipv4"]["netmask"] %}
+      {% set public_subnet = public_address ~ "/" ~ public_netmask %}
+      {% set private_subnet = private_address ~ "/" ~ private_netmask %}
+
+      saddr {{ private_subnet | ipaddr('net') }} outerface {{ public_interface }} MASQUERADE;
+    }
+  }
+
+  table filter {
+    chain FORWARD {
+      interface {{ private_interface }} ACCEPT;
+    }
+  }
+}

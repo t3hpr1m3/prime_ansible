@@ -1,0 +1,9 @@
+---
+domain_name: daprime.net
+prime_group: prime
+prime_users:
+  jdubz:
+    github_username: t3hpr1m3
+prime_default_password: foobar
+
+dynamic_dns_key: '{{ vault_dynamic_dns_key }}'

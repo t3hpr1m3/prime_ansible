@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+auto lo
+iface lo inet loopback
+
+{% if public_interface is defined %}
+auto {{ public_interface.name }}
+iface {{ public_interface.name }} inet dhcp
+{% endif %}
+
+auto {{ private_interface.name }}
+{% if private_interface.type == 'static' %}
+{% if ansible_lsb.id == 'Raspbian' %}
+iface {{ private_interface.name }} inet manual
+{% else %}
+iface {{ private_interface.name }} inet static
+        address {{ private_interface.address | ipaddr('address') }}
+        netmask {{ private_interface.address | ipaddr('netmask') }}
+        dns-domain {{ domain_name }}
+        dns-nameservers {{ groups['dns-servers']|map('extract', hostvars, ['private_interface', 'address'])|ipaddr('address')|list|join(' ') }}
+{% if 'routers' not in group_names %}
+        gateway {{ hostvars[groups['routers'][0]]['private_interface']['address']|ipaddr('address') }}
+{% endif %}
+{% endif %}
+{% endif %}

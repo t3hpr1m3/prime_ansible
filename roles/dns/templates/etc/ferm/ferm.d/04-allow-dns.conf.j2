@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+# Modifications to this file will be destroyed!
+
+domain ip {
+  table filter {
+    chain INPUT {
+      # DNS queries
+      interface {{ private_interface['name'] }} protocol udp dport 53 ACCEPT;
+      interface {{ private_interface['name'] }} protocol tcp dport 53 ACCEPT;
+    }
+  }
+}

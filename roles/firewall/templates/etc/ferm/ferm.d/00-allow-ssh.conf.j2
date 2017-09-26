@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+
+domain ip {
+  table filter {
+    chain INPUT {
+      protocol tcp dport 22 ACCEPT;
+    }
+  }
+}

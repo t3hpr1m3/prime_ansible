@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+# Modifications to this file will be destroyed!
+
+domain ip {
+  table filter {
+    chain INPUT {
+      # DHCP requests
+      interface {{ internal_interface }} protocol udp dport 67:68 sport 67:68 ACCEPT;
+    }
+  }
+}

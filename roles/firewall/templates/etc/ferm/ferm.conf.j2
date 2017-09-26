@@ -1,0 +1,57 @@
+# {{ ansible_managed }}
+
+domain ip {
+  table filter {
+    chain INPUT {
+      policy {{ ferm_default_policy_input }};
+
+      # enable connection tracking
+      mod conntrack ctstate INVALID DROP;
+      mod conntrack ctstate (ESTABLISHED RELATED) ACCEPT;
+
+      # Drop all netbios traffic silently
+      protocol tcp dport 137 DROP;
+      protocol udp dport 137 DROP;
+      protocol tcp dport 138 DROP;
+      protocol udp dport 138 DROP;
+
+      interface lo ACCEPT;
+
+      # Allow pings
+      protocol icmp ACCEPT;
+    }
+
+    chain OUTPUT {
+      policy {{ ferm_default_policy_output }};
+
+      # enable connection tracking
+      mod conntrack ctstate INVALID DROP;
+      mod conntrack ctstate (ESTABLISHED RELATED) ACCEPT;
+    }
+
+    chain FORWARD {
+      policy {{ ferm_default_policy_forward }};
+
+      # enable connection tracking
+      mod conntrack ctstate INVALID DROP;
+      mod conntrack ctstate (ESTABLISHED RELATED) ACCEPT;
+    }
+  }
+}
+
+@include 'ferm.d/';
+
+domain ip {
+  table filter {
+    chain LOGGING {
+      mod limit limit 1/sec limit-burst 5 RETURN;
+      LOG log-prefix "IPTables Dropped: " log-level 7;
+      DROP;
+    }
+{% if ferm_default_policy_input == "DROP" %}
+    chain INPUT {
+      jump LOGGING;
+    }
+{% endif %}
+  }
+}

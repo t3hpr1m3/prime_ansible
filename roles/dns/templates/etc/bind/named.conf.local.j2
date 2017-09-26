@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+acl "trusted" {
+	127.0.0.0/8;
+	::1/128;
+	192.168.0.0/24;
+};
+
+key "daprime-key" {
+	algorithm hmac-md5;
+	secret "{{ dynamic_dns_key }}";
+};
+
+zone "daprime.net" {
+	type master;
+	file "/var/lib/bind/db.daprime.net";
+	allow-update { key daprime-key; };
+};
+
+zone "0.168.192.in-addr.arpa" {
+	type master;
+	file "/var/lib/bind/db.daprime.net.inv";
+	allow-update { key daprime-key; };
+};

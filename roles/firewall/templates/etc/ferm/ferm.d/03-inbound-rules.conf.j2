@@ -1,0 +1,30 @@
+# {{ ansible_managed }}
+{% set public_interface = hostvars[ansible_hostname]["public_interface"]["name"] %}
+{% set private_interface = hostvars[ansible_hostname]["private_interface"]["name"] %}
+
+
+@def &FORWARD_PORT($proto, $port, $dest) = {
+  table filter chain FORWARD interface {{ public_interface }} outerface {{ private_interface }} daddr $dest proto $proto dport $port ACCEPT;
+  table nat chain PREROUTING interface {{ public_interface }} daddr {{ hostvars[ansible_hostname]['ansible_' ~ public_interface]['ipv4']['address'] }} proto $proto dport $port DNAT to $dest;
+}
+
+
+domain ip {
+  table filter {
+    chain INPUT {
+      interface lo ACCEPT;
+
+      # OpenVPN
+      interface {{ public_interface }} protocol udp dport 12112 ACCEPT;
+
+      # Speed Testing
+      interface {{ private_interface }} protocol tcp dport 2222 ACCEPT;
+
+      # NTP
+      interface {{ private_interface }} protocol udp dport 123 ACCEPT;
+    }
+  }
+
+  # Bittorrent
+  &FORWARD_PORT((udp tcp), 51413, '{{ hostvars[groups['torrent-servers'][0]]['ansible_host'] }}');
+}

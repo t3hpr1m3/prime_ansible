@@ -1,0 +1,11 @@
+---
+- hosts: all
+  tasks: [ ]
+
+- hosts: routers
+  become: yes
+  become_user: root
+  roles:
+    - firewall
+    - dns
+    - ntp-server

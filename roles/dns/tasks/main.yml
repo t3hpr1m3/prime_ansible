@@ -17,6 +17,7 @@
     mode: 0660
   with_items:
     - etc/bind/named.conf.local
+    - etc/bind/named.conf.options
   tags:
     - configuration
   notify: restart bind

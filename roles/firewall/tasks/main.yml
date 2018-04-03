@@ -16,20 +16,6 @@
   tags:
     - firewall
 
-- name: ensure the bridge utilities are installed
-  apt:
-    name: bridge-utils
-    state: present
-    install_recommends: no
-
-- name: ensure the bridge modules are loaded
-  modprobe:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - bridge
-    - br_netfilter
-
 - name: ensure ferm is installed
   apt:
     name: ferm

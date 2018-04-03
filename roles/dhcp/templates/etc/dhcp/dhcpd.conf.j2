@@ -1,11 +1,19 @@
 # {{ ansible_managed }}
+{% set public_interface = hostvars[ansible_hostname]["public_interface"]["name"] %}
+{% set private_interface = hostvars[ansible_hostname]["private_interface"]["name"] %}
+{% set public_address = hostvars[ansible_hostname]["ansible_" ~ public_interface]["ipv4"]["address"] %}
+{% set public_netmask = hostvars[ansible_hostname]["ansible_" ~ public_interface]["ipv4"]["netmask"] %}
+{% set private_address = hostvars[ansible_hostname]["ansible_" ~ private_interface]["ipv4"]["address"] %}
+{% set private_netmask = hostvars[ansible_hostname]["ansible_" ~ private_interface]["ipv4"]["netmask"] %}
+{% set public_subnet = public_address ~ "/" ~ public_netmask %}
+{% set private_subnet = private_address ~ "/" ~ private_netmask %}
 # Modifications to this file will be destroyed!
 
 authoritative;
 
 option domain-name "daprime.net";
 option domain-search "daprime.net";
-option domain-name-servers {{ groups['routers'][0].internal_ip }};
+option domain-name-servers {{ private_address }};
 ddns-updates on;
 ddns-update-style interim;
 
@@ -15,47 +23,33 @@ key daprime-key {
 }
 
 zone daprime.net. {
-	primary {{ groups['routers'][0].internal_ip }};
+	primary {{ private_address }};
 	key daprime-key;
 }
 
 zone 0.168.192.in-addr.arpa. {
-	primary {{ groups['routers'][0].internal_ip }};
+	primary {{ private_address }};
 	key daprime-key;
-}
-
-failover peer "daprime" {
-	primary;
-	address {{ internal_ip }};
-	peer address 192.168.0.7;
-	mclt 3600;
-	split 128;
-	load balance max seconds 10;
 }
 
 subnet 192.168.0.0 netmask 255.255.255.0 {
 	pool {
 		range 192.168.0.50 192.168.0.99;
-		failover peer "daprime";
 	}
-	option routers {{ groups['routers'][0].internal_ip }};
-	option domain-name-servers {{ groups['routers'][0].internal_ip }};
-	option ntp-servers {{ groups['routers'][0].internal_ip }};
+	option routers {{ private_address }};
+	option domain-name-servers {{ private_address}};
+	option ntp-servers {{ private_address }};
 }
 
-host jupiter {
+host apollo {
 	hardware ethernet 14:da:e9:58:db:af;
 	fixed-address 192.168.0.2;
 }
-host titan {
+host castor {
 	hardware ethernet 28:cf:e9:1c:e0:f9;
 	fixed-address 192.168.0.3;
 }
 host krypton {
 	hardware ethernet 04:e6:76:8e:e9:bd;
 	fixed-address 192.168.0.14;
-}
-host hulk {
-	hardware ethernet 30:85:a9:17:1e:d5;
-	fixed-address 192.168.0.100;
 }

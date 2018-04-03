@@ -9,7 +9,7 @@
   lineinfile:
     dest: /etc/default/isc-dhcp-server
     regexp: '^INTERFACES='
-    line: 'INTERFACES="{{ internal_interface }}"'
+    line: 'INTERFACES="{{ hostvars[ansible_hostname]["private_interface"]["name"] }}"'
   notify: restart dhcp
 
 - name: ensure the configuration file is present

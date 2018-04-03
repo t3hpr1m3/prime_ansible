@@ -11,23 +11,25 @@ except ImportError:
 
 DEFAULT_INVENTORY = {
 	"hosts": {
-		"pluto": {
+		"zeus": {
 			"vars": {
-				"ansible_ssh_user": "pi",
+				"ansible_ssh_user": "jdubz",
+				"ansible_host": "192.168.0.1",
 				"public_interface": {
-					"name": "eth0",
+					"name": "eth1",
 					"type": "dhcp"
 				},
 				"private_interface": {
-					"name": "eth1",
+					"name": "eth0",
 					"type": "static",
 					"address": "192.168.0.1/24"
 				}
 			}
 		},
-		"andromeda": {
+		"athena": {
 			"vars": {
 				"ansible_ssh_user": "debian",
+				"ansible_host": "192.168.0.7",
 				"private_interface": {
 					"name": "br0",
 					"type": "bridge",
@@ -35,36 +37,14 @@ DEFAULT_INVENTORY = {
 					"address": "192.168.0.7/24"
 				}
 			}
-		},
-		"torrents": {
-			"vars": {
-				"ansible_ssh_user": "debian",
-				"ansible_host": "192.168.0.221",
-				"private_interface": {
-					"name": "eth0",
-					"type": "dhcp"
-				}
-			}
-		},
-		"beyond1": {
-			"vars": {
-				"ansible_ssh_user": "debian",
-				"ansible_host": "192.168.0.213",
-				"private_interface": {
-					"name": "eth0",
-					"type": "dhcp"
-				}
-			}
 		}
 	},
 	"groups": {
-		"routers": { "hosts": ["pluto"] },
-		"ntp_servers": { "hosts": ["pluto"] },
-		"dhcp-servers": { "hosts": ["pluto", "andromeda"] },
-		"dns-servers": { "hosts": ["pluto", "andromeda"] },
-		"vpn-servers": { "hosts": ["pluto"] },
-		"torrent-servers": { "hosts": ["torrents"] },
-		"minecraft-servers": { "hosts": ["beyond1"] }
+		"routers": { "hosts": ["zeus"] },
+		"ntp_servers": { "hosts": ["zeus"] },
+		"dhcp-servers": { "hosts": ["zeus"] },
+		"dns-servers": { "hosts": ["zeus"] },
+		"vpn-servers": { "hosts": ["zeus"] }
 	}
 }
 

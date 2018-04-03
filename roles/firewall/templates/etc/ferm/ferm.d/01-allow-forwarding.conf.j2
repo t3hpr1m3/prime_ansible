@@ -11,7 +11,6 @@ domain ip {
       {% set private_netmask = hostvars[ansible_hostname]["ansible_" ~ private_interface]["ipv4"]["netmask"] %}
       {% set public_subnet = public_address ~ "/" ~ public_netmask %}
       {% set private_subnet = private_address ~ "/" ~ private_netmask %}
-
       saddr {{ private_subnet | ipaddr('net') }} outerface {{ public_interface }} MASQUERADE;
     }
   }

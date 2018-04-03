@@ -7,5 +7,6 @@
   become_user: root
   roles:
     - firewall
-    - dns
     - ntp-server
+    - dns
+    - dhcp

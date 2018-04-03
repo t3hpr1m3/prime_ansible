@@ -3,7 +3,6 @@
   become: yes
   become_user: root
   roles:
-    - network
     - common
-- include: routers.yml
-# - include: dhcpd.yml
+    - network
+- import_playbook: routers.yml

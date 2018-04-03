@@ -5,7 +5,7 @@ domain ip {
   table filter {
     chain INPUT {
       # DHCP requests
-      interface {{ internal_interface }} protocol udp dport 67:68 sport 67:68 ACCEPT;
+      interface {{ hostvars[ansible_hostname]["public_interface"]["name"] }} protocol udp dport 67:68 sport 67:68 ACCEPT;
     }
   }
 }

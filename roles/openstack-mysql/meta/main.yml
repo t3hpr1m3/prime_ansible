@@ -1,0 +1,5 @@
+---
+dependencies:
+  - role: mysql
+    vars:
+      mysql_root_password: '{{ openstack_mysql_root_password }}'

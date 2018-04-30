@@ -1,0 +1,99 @@
+---
+- name: ensure the keystone database exists
+  mysql_db:
+    name: '{{ openstack_keystone_database_name }}'
+  run_once: yes
+  tags:
+    - mysql
+    - keystone
+
+- name: ensure the keystone mysql user exists
+  mysql_user:
+    name: '{{ openstack_keystone_database_username }}'
+    host: '{{ item }}'
+    password: '{{ openstack_keystone_database_password }}'
+    priv: '{{ openstack_keystone_database_name }}.*:ALL,GRANT'
+    state: present
+  with_items:
+    - localhost
+    - '%'
+  run_once: yes
+  tags:
+    - mysql
+    - keystone
+
+- name: ensure the required packages are installed
+  apt:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - keystone
+    - libapache2-mod-wsgi
+  tags:
+    - keystone
+
+- import_tasks: configuration.yml
+
+- meta: flush_handlers
+
+- name: ensure the fernet keys are configured
+  command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+  args:
+    creates: /etc/keystone/fernet-keys/0
+  tags:
+    - keystone
+
+- name: ensure the credentials are configured
+  command: keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+  args:
+    creates: /etc/keystone/credential-keys/0
+  tags:
+    - keystone
+
+- name: ensure keystone is bootstrapped
+  command: |
+    keystone-manage bootstrap \
+    --bootstrap-password {{ openstack_admin_password }} \
+    --bootstrap-admin-url http://{{ ansible_hostname }}:5000/v3/ \
+    --bootstrap-internal-url http://{{ ansible_hostname }}:5000/v3/ \
+    --bootstrap-public-url http://{{ ansible_hostname }}:5000/v3/ \
+    --bootstrap-region-id RegionOne
+  changed_when: false
+  register: add_service
+  until: add_service|success
+  retries: 5
+  delay: 10
+  tags:
+    - keystone
+
+- name: ensure the service project exists
+  os_project:
+    name: service
+    description: Service Project
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  tags:
+    - keystone
+
+- name: ensure the user role exists
+  os_keystone_role:
+    name: user
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  tags:
+    - keystone
+

@@ -5,7 +5,7 @@
 
 - name: make the hostname permanent
   copy:
-    content: "{{ hostname | default(inventory_hostname) }}.{{ domain_name }}"
+    content: "{{ hostname | default(inventory_hostname) }}.{{ vlans[primary_vlan].domain_name }}"
     dest: /etc/hostname
     owner: root
     group: root
@@ -27,28 +27,33 @@
     state: present
   tags: network
 
-- name: ensure resolvconf is installed
+- name: ensure required packages are installed
   apt:
-    name: resolvconf
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - resolvconf
+    - vlan
+  tags: network
+
+- name: ensure the vlan module is loaded at boot
+  lineinfile:
+    dest: /etc/modules
+    regexp: '^8021q'
+    line: '8021q'
     state: present
   tags: network
+
+- name: ensure the vlan module is loaded
+  modprobe:
+    name: 8021q
+    state: present
 
 - name: configure network interfaces
   template:
     src: 'etc/network/interfaces.j2'
-    dest: '/etc/network/interfaces'
+    dest: '/etc/network/interfaces.ansible'
     owner: root
     group: root
     mode: 0644
-  tags: network
-
-- name: configure dhcpcd
-  template:
-    src: etc/dhcpcd.conf.j2
-    dest: /etc/dhcpcd.conf
-    owner: root
-    group: root
-    mode: 0644
-  notify: delete dhcp leases
-  when: ansible_os_family == 'Debian' and ansible_lsb.id == 'Raspbian'
   tags: network

@@ -1,0 +1,5 @@
+---
+openstack_mysql_root_password: "{{ vault_openstack_mysql_root_password }}"
+openstack_rabbitmq_password: "{{ vault_openstack_rabbitmq_password }}"
+openstack_database_host: janus
+openstack_admin_password: "{{ vault_openstack_admin_password }}"

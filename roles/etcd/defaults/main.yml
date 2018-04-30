@@ -1,0 +1,6 @@
+---
+etcd_group: etcd
+etcd_user: etcd
+etcd_version: 3.2.7
+etcd_bin_path: /usr/bin
+etcd_var_path: /var/lib/etcd

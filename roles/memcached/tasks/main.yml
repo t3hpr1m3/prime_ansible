@@ -1,0 +1,5 @@
+---
+- name: ensure memcached is installed
+  apt:
+    name: memcached
+    state: present

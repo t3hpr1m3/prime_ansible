@@ -1,24 +1,36 @@
 # {{ ansible_managed }}
 auto lo
 iface lo inet loopback
+{% for interface in interfaces %}
+{% set vlan = vlans[interface.vlan] if interface.vlan is defined else None %}
 
-{% if public_interface is defined %}
-auto {{ public_interface.name }}
-iface {{ public_interface.name }} inet dhcp
-{% endif %}
-
-auto {{ private_interface.name }}
-{% if private_interface.type == 'static' %}
-{% if ansible_lsb.id == 'Raspbian' %}
-iface {{ private_interface.name }} inet manual
+{#
+	Setup standard interface logic (with optional vlan tagging)
+#}
+{% if vlan and vlan.id is defined %}
+auto {{ interface.name }}.{{ vlan.id }}
+iface {{ interface.name }}.{{ vlan.id }} inet {{ interface.type }}
 {% else %}
-iface {{ private_interface.name }} inet static
-        address {{ private_interface.address | ipaddr('address') }}
-        netmask {{ private_interface.address | ipaddr('netmask') }}
-        dns-domain {{ domain_name }}
-        dns-nameservers {{ groups['dns-servers']|map('extract', hostvars, ['private_interface', 'address'])|ipaddr('address')|list|join(' ') }}
+auto {{ interface.name }}
+iface {{ interface.name }} inet {{ interface.type }}
+{% endif %}
+{#
+	add the actual configuration
+#}
+{% if interface.type == 'static' %}
+{% if vlan  %}
+	address {{ ((vlan.address | ipaddr('network') | ipaddr('int')) + interface.address) | ipaddr('address') }}
+	netmask {{ vlan.address | ipaddr('netmask') }}
+{% endif %}
 {% if 'routers' not in group_names %}
-        gateway {{ hostvars[groups['routers'][0]]['private_interface']['address']|ipaddr('address') }}
+	gateway {{ ((vlan.address | ipaddr('network') | ipaddr('int')) + 1) | ipaddr('address') }}
 {% endif %}
+{# dns-search {{ vlan.domain_name }} #}
+{# dns-nameservers {{ groups['dns-servers']|map('extract', hostvars, ['private_interface', 'address'])|ipaddr('address')|list|join(' ') }} #}
 {% endif %}
+{% if interface.extra_config is defined and interface.extra_config %}
+{% for line in interface.extra_config %}
+	{{ line }}
+{% endfor %}
 {% endif %}
+{% endfor %}

@@ -1,0 +1,6 @@
+---
+dependencies:
+  - { role: openstack-mysql }
+  - { role: openstack-rabbitmq }
+  - { role: openstack-memcached }
+  - { role: etcd }

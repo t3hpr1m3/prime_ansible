@@ -1,0 +1,13 @@
+[Unit]
+After=network.target
+Description=etc - highly available key value store
+
+[Service]
+LimitNOFILE=65536
+Restart=on-failure
+Type=notify
+ExecStart={{ etcd_bin_path }}/etcd --config-file /etc/etcd/etcd.conf.yml
+User=etcd
+
+[Install]
+WantedBy=multi-user.target

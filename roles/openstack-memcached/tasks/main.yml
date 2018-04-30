@@ -1,0 +1,21 @@
+---
+- name: ensure the python memcached client is installed
+  apt:
+    name: python-memcache
+    state: present
+  tags:
+    - memcached
+
+- name: ensure memcached is listening on only the management interface
+  lineinfile:
+    dest: /etc/memcached.conf
+    regexp: '^-l'
+    line: '-l {{ ansible_default_ipv4.address }}'
+    state: present
+  notify:
+    - restart memcached
+  tags:
+    - memcached
+
+
+

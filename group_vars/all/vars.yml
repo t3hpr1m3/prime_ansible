@@ -1,9 +1,42 @@
 ---
-domain_name: daprime.net
+vlans:
+  default:
+    address: 192.168.0.0/24
+    gateway: 192.168.0.1
+    domain_name: daprime.net
+  management:
+    id: 10
+    address: 10.0.10.0/24
+    gateway: 10.0.10.1
+    domain_name: home.daprime.net
+  trusted:
+    id: 20
+    address: 10.0.20.0/24
+    gateway: 10.0.20.1
+    domain_name: trusted.home.daprime.net
+  public:
+    id: 30
+    address: 10.0.30.0/24
+    gateway: 10.0.30.1
+    domain_name: public.home.daprime.net
+  guest:
+    id: 40
+    address: 10.0.40.0/24
+    gateway: 10.0.40.1
+    domain_name: guest.home.daprime.net
+  servers:
+    id: 70
+    address: 10.0.70.0/24
+    gateway: 10.0.70.1
+    domain_name: servers.home.daprime.net
+  wan:
+    id: 100
+    address: 10.0.100.0/24
+    gateway: 10.0.100.1
+    domain_name: daprime.net
+
 prime_group: prime
 prime_users:
   jdubz:
     github_username: t3hpr1m3
-prime_default_password: foobar
-
-dynamic_dns_key: '{{ vault_dynamic_dns_key }}'
+prime_default_password: '{{ vault_prime_default_password }}'

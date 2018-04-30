@@ -5,4 +5,6 @@
   roles:
     - common
     - network
-- import_playbook: routers.yml
+
+- import_playbook: openstack-controllers.yml
+# - import_playbook: routers.yml

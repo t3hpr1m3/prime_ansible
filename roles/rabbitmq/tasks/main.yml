@@ -1,0 +1,21 @@
+---
+- name: ensure the RabbitMQ package is installed
+  apt:
+    name: rabbitmq-server
+    state: present
+  tags:
+    - rabbitmq
+
+- name: ensure the guest user does not exist
+  rabbitmq_user:
+    user: guest
+    state: absent
+  tags:
+    - rabbitmq
+
+- name: ensure RabbitMQ is running
+  service:
+    name: rabbitmq-server
+    state: started
+  tags:
+    - rabbitmq

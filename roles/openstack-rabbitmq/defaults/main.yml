@@ -1,0 +1,3 @@
+---
+openstack_rabbitmq_username: openstack
+openstack_rabbitmq_password: iamveryinsecure

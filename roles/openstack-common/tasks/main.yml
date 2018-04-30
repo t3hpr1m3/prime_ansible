@@ -1,0 +1,7 @@
+---
+- name: ensure the OpenStack client is installed
+  apt:
+    name: python-openstackclient
+    state: present
+  tags:
+    - openstack

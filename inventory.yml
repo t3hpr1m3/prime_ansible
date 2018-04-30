@@ -1,0 +1,68 @@
+all:
+  hosts:
+    zeus:
+      ansible_ssh_host: 192.168.0.1
+      ansible_ssh_user: jdubz
+      interfaces:
+        - name: eth0
+          type: static
+          address: 1
+          vlan: default
+        - name: eth0
+          type: static
+          address: 1
+          vlan: management
+        - name: eth0
+          type: static
+          address: 1
+          vlan: servers
+        - name: eth1
+          type: dhcp
+      primary_vlan: servers
+
+    janus:
+      ansible_ssh_host: 10.0.70.2
+      ansible_ssh_user: jdubz
+      interfaces:
+        - name: enp2s0
+          type: manual
+        - name: enp2s0
+          type: static
+          address: 2
+          vlan: servers
+        - name: enp3s0
+          type: manual
+          extra_config:
+            - up ip link set dev $IFACE up
+            - down ip link set dev $IFACE down
+      primary_vlan: servers
+
+    artemis:
+      ansible_ssh_host: 10.0.70.13
+      ansible_ssh_user: jdubz
+      interfaces:
+        - name: enp2s0
+          type: manual
+        - name: enp2s0
+          type: static
+          address: 13
+          vlan: servers
+        - name: enp3s0
+          type: manual
+      primary_vlan: servers
+
+  children:
+    routers:
+      hosts:
+        zeus:
+    servers:
+      hosts:
+        zeus:
+        janus:
+    openstack:
+      hosts:
+        janus:
+        artemis:
+    openstack-controllers:
+      hosts:
+        janus:

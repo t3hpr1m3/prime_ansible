@@ -1,0 +1,84 @@
+---
+- name: ensure the etcd group exists
+  group:
+    name: '{{ etcd_group }}'
+    system: yes
+    state: present
+  tags:
+    - etcd
+
+- name: ensure the etcd user exists
+  user:
+    name: '{{ etcd_user }}'
+    home: /var/lib/etcd
+    shell: /bin/false
+    group: '{{ etcd_group }}'
+    system: yes
+    state: present
+  tags:
+    - etcd
+
+- name: ensure the required directories exist
+  file:
+    path: '{{ item }}'
+    owner: '{{ etcd_user }}'
+    group: '{{ etcd_group }}'
+    state: directory
+  with_items:
+    - /etc/etcd
+    - /var/lib/etcd
+  tags:
+    - etcd
+
+- name: check etcd version
+  shell: "command -v etcdctl >/dev/null && etcdctl --version | rev | cut -d ' ' -f 1 | rev | head -n 1 || echo ''"
+  register: etcd_installed_version
+  ignore_errors: True
+  tags:
+    - etcd
+
+- name: Install etcd
+  shell: |
+    rm -rf /tmp/etcd && mkdir -p /tmp/etcd
+    curl -L https://github.com/coreos/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-amd64.tar.gz -o /tmp/etcd-v{{ etcd_version }}-linux-amd64.tar.gz
+    tar xvzf /tmp/etcd-v{{ etcd_version }}-linux-amd64.tar.gz -C /tmp/etcd --strip-components=1
+    cp /tmp/etcd/etcd {{ etcd_bin_path }}/etcd
+    cp /tmp/etcd/etcdctl {{ etcd_bin_path }}/etcdctl
+  when: etcd_installed_version.stdout != etcd_version
+  tags:
+    - etcd
+
+- name: ensure the etcd configuration is present
+  template:
+    src: etc/etcd/etcd.conf.yml.j2
+    dest: /etc/etcd/etcd.conf.yml
+    owner: '{{ etcd_user }}'
+    group: '{{ etcd_group }}'
+  notify: restart etcd
+  tags:
+    - etcd
+
+- name: ensure the systemd unit file exists
+  template:
+    src: lib/systemd/system/etcd.service.j2
+    dest: /lib/systemd/system/etcd.service
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - etcd
+
+- name: ensure the systemd unit is enabled
+  systemd:
+    name: etcd
+    enabled: yes
+    daemon_reload: yes
+  tags:
+    - etcd
+
+- name: ensure etcd is running
+  service:
+    name: etcd
+    state: started
+  tags:
+    - etcd

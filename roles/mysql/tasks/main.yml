@@ -1,8 +1,12 @@
 ---
-- name: ensure mysql is installed
+- name: ensure the required packages are installed
   apt:
-    name: mariadb-server
+    name: "{{ item }}"
     state: present
+  with_items:
+    - mariadb-server
+    - python-pymysql
+    - python-mysqldb
   tags:
     - mysql
 

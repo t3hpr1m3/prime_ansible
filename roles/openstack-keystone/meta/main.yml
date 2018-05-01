@@ -1,5 +1,0 @@
----
-dependencies:
-  - role: openstack-common
-  - role: openstack-controller
-  - role: apache2

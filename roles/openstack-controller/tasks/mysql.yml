@@ -1,11 +1,4 @@
 ---
-- name: ensure the required packages are installed
-  apt:
-    name: python-pymysql
-    state: present
-  tags:
-    - mysql
-
 - name: ensure mysql is configured properly for openstack
   template:
     src: etc/mysql/mariadb.conf.d/99-openstack.cnf.j2
@@ -15,3 +8,5 @@
     - restart mysql
   tags:
     - mysql
+
+- meta: flush_handlers

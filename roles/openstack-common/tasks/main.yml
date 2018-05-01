@@ -5,3 +5,17 @@
     state: present
   tags:
     - openstack
+
+- name: ensure pip is installed
+  apt:
+    name: python-pip
+    state: present
+  tags:
+    - openstack
+
+- name: ensure shade is installed for OpenStack -> ansible integration
+  pip:
+    name: shade
+    state: present
+  tags:
+    - openstack

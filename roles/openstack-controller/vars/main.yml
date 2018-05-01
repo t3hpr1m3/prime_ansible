@@ -1,2 +1,3 @@
 ---
 openstack_keystone_database_url: "mysql+pymysql://{{ openstack_keystone_database_username }}:{{ openstack_keystone_database_password }}@{{ openstack_database_host }}/{{ openstack_keystone_database_name }}"
+openstack_glance_database_url: "mysql+pymysql://{{ openstack_glance_database_username }}:{{ openstack_glance_database_password }}@{{ openstack_database_host }}/{{ openstack_glance_database_name }}"

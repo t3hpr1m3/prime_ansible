@@ -29,12 +29,50 @@
   with_items:
     - keystone
     - libapache2-mod-wsgi
+  notify:
+    - restart apache2
   tags:
     - keystone
 
-- import_tasks: configuration.yml
+- name: ensure the keystone database is configured
+  ini_file:
+    dest: /etc/keystone/keystone.conf
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: database
+      option: connection
+      value: "{{ openstack_keystone_database_url }}"
+  notify:
+    - restart apache2
+  tags:
+    - keystone
+    - configuration
+
+- name: ensure the fernet token provider is configured
+  ini_file:
+    dest: /etc/keystone/keystone.conf
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: token
+      option: provider
+      value: fernet
+  notify:
+    - restart apache2
+  tags:
+    - keystone
+    - configuration
 
 - meta: flush_handlers
+
+- name: sync keystone database
+  command: keystone-manage db_sync
+  become: yes
+  become_user: keystone
+
 
 - name: ensure the fernet keys are configured
   command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
@@ -60,7 +98,7 @@
     --bootstrap-region-id RegionOne
   changed_when: false
   register: add_service
-  until: add_service|success
+  until: add_service is success
   retries: 5
   delay: 10
   tags:
@@ -70,6 +108,7 @@
   os_project:
     name: service
     description: Service Project
+    domain: Default
     auth:
       auth_url: http://{{ ansible_hostname }}:5000/v3
       username: admin

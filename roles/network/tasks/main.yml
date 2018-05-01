@@ -1,7 +1,9 @@
 - name: set the hostname
   hostname:
     name: "{{ hostname | default(inventory_hostname) }}"
-  tags: network
+  when: ansible_hostname != (hostname | default(inventory_hostname))
+  tags:
+    - network
 
 - name: make the hostname permanent
   copy:
@@ -19,13 +21,23 @@
     state: absent
   tags: network
 
-- name: ensure the localhost entry is configured
+- name: ensure the localhost entry is configured properly
   lineinfile:
     dest: /etc/hosts
     regexp: '^127\.0\.0\.1'
-    line: '127.0.0.1 localhost {{ hostname | default(inventory_hostname) }}'
+    line: 127.0.0.1 localhost
     state: present
   tags: network
+
+- name: ensure there is a hosts entry for the primary interface
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^{{ ansible_default_ipv4.address }}'
+    line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}"
+    state: present
+  tags:
+    - network
+
 
 - name: ensure required packages are installed
   apt:

@@ -1,4 +1,9 @@
 ---
+openstack_mysql_root_password: CHANGEME
+
+openstack_rabbitmq_username: openstack
+openstack_rabbitmq_password: iamveryinsecure
+
 openstack_admin_password: CHANGEME
 
 openstack_keystone_memcached_host: localhost:11211
@@ -9,6 +14,14 @@ openstack_keystone_service_description: OpenStack Identity
 openstack_keystone_log_dir: /var/log/keystone
 
 openstack_database_host: localhost
+
 openstack_keystone_database_name: keystone
 openstack_keystone_database_username: keystone
 openstack_keystone_database_password: CHANGEME
+
+openstack_glance_service_username: glance
+openstack_glance_service_password: CHANGEME
+
+openstack_glance_database_name: glance
+openstack_glance_database_username: glance
+openstack_glance_database_password: CHANGEME

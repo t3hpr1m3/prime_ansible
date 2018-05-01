@@ -1,5 +1,0 @@
----
-- name: sync keystone database
-  command: keystone-manage db_sync
-  become: yes
-  become_user: keystone

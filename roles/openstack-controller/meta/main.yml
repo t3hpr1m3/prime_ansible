@@ -1,6 +1,10 @@
 ---
 dependencies:
-  - { role: openstack-mysql }
-  - { role: openstack-rabbitmq }
-  - { role: openstack-memcached }
-  - { role: etcd }
+  - role: openstack-common
+  - role: memcached
+  - role: rabbitmq
+  - role: mysql
+    vars:
+      mysql_root_password: "{{ openstack_mysql_root_password }}"
+  - role: apache2
+  - role: etcd

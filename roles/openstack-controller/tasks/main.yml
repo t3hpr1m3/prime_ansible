@@ -1,0 +1,6 @@
+---
+- import_tasks: memcache.yml
+- import_tasks: mysql.yml
+- import_tasks: rabbitmq.yml
+- import_tasks: keystone.yml
+- import_tasks: glance.yml

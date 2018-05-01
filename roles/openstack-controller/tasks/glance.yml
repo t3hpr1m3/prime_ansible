@@ -1,0 +1,231 @@
+---
+- name: ensure the glance database exists
+  mysql_db:
+    name: "{{ openstack_glance_database_name }}"
+  run_once: yes
+  tags:
+    - mysql
+    - glance
+
+- name: ensure the glance mysql user exists
+  mysql_user:
+    name: '{{ openstack_glance_database_username }}'
+    host: '{{ item }}'
+    password: '{{ openstack_glance_database_password }}'
+    priv: '{{ openstack_glance_database_name }}.*:ALL,GRANT'
+    state: present
+  with_items:
+    - localhost
+    - '%'
+  run_once: yes
+  tags:
+    - mysql
+    - glance
+
+- name: ensure the glance user exists in keystone
+  os_user:
+    name: "{{ openstack_glance_service_username }}"
+    password: "{{ openstack_glance_service_password }}"
+    update_password: on_create
+    default_project: service
+    state: present
+    domain: Default
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - mysql
+    - glance
+
+- name: ensure the glance user has the admin role in the service project
+  os_user_role:
+    user: "{{ openstack_glance_service_username }}"
+    role: admin
+    project: service
+    state: present
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - mysql
+    - glance
+
+- name: ensure the glance service exists in keystone
+  os_keystone_service:
+    name: glance
+    description: OpenStack Image
+    service_type: image
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+    state: present
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - mysql
+    - glance
+
+- name: ensure the glance endpoints exist in keystone
+  os_keystone_endpoint:
+    service: glance
+    endpoint_interface: "{{ item.interface }}"
+    url: "{{ item.url }}"
+    region: RegionOne
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+    state: present
+  with_items:
+    - interface: public
+      url: "http://{{ ansible_hostname }}:9292"
+    - interface: internal
+      url: "http://{{ ansible_hostname }}:9292"
+    - interface: admin
+      url: "http://{{ ansible_hostname }}:9292"
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - mysql
+    - glance
+
+- name: ensure the glance packages are installed
+  apt:
+    name: glance
+    state: present
+  tags:
+    - glance
+
+- name: ensure the glance api is configured
+  ini_file:
+    dest: /etc/glance/glance-api.conf
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: database
+      option: connection
+      value: "{{ openstack_glance_database_url }}"
+    - section: keystone_authtoken
+      option: auth_uri
+      value: "http://{{ ansible_hostname }}:5000"
+    - section: keystone_authtoken
+      option: auth_url
+      value: "http://{{ ansible_hostname }}:5000"
+    - section: keystone_authtoken
+      option: memcached_servers
+      value: "{{ ansible_hostname }}:11211"
+    - section: keystone_authtoken
+      option: auth_type
+      value: password
+    - section: keystone_authtoken
+      option: project_domain_name
+      value: Default
+    - section: keystone_authtoken
+      option: user_domain_name
+      value: Default
+    - section: keystone_authtoken
+      option: project_name
+      value: service
+    - section: keystone_authtoken
+      option: username
+      value: "{{ openstack_glance_service_username }}"
+    - section: keystone_authtoken
+      option: password
+      value: "{{ openstack_glance_service_password }}"
+    - section: paste_deploy
+      option: flavor
+      value: keystone
+    - section: glance_store
+      option: stores
+      value: file,http
+    - section: glance_store
+      option: default_store
+      value: file
+    - section: glance_store
+      option: filesystem_store_datadir
+      value: /var/lib/glance/images
+  notify:
+    - restart glance-api
+  tags:
+    - glance
+    - configuration
+    - mysql
+
+- name: ensure the glance registry is configured
+  ini_file:
+    dest: /etc/glance/glance-registry.conf
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: database
+      option: connection
+      value: "{{ openstack_glance_database_url }}"
+    - section: keystone_authtoken
+      option: auth_uri
+      value: "http://{{ ansible_hostname }}:5000"
+    - section: keystone_authtoken
+      option: auth_url
+      value: "http://{{ ansible_hostname }}:5000"
+    - section: keystone_authtoken
+      option: memcached_servers
+      value: "{{ ansible_hostname }}:11211"
+    - section: keystone_authtoken
+      option: auth_type
+      value: password
+    - section: keystone_authtoken
+      option: project_domain_name
+      value: Default
+    - section: keystone_authtoken
+      option: user_domain_name
+      value: Default
+    - section: keystone_authtoken
+      option: project_name
+      value: service
+    - section: keystone_authtoken
+      option: username
+      value: "{{ openstack_glance_service_username }}"
+    - section: keystone_authtoken
+      option: password
+      value: "{{ openstack_glance_service_password }}"
+    - section: paste_deploy
+      option: flavor
+      value: keystone
+  notify:
+    - restart glance-registry
+  tags:
+    - glance
+    - configuration
+
+- meta: flush_handlers
+
+- name: ensure the glance database is populated
+  command: glance-manage db_sync
+  become: yes
+  become_user: glance
+  tags:
+    - glance

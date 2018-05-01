@@ -34,6 +34,7 @@
   shell: "command -v etcdctl >/dev/null && etcdctl --version | rev | cut -d ' ' -f 1 | rev | head -n 1 || echo ''"
   register: etcd_installed_version
   ignore_errors: True
+  changed_when: False
   tags:
     - etcd
 

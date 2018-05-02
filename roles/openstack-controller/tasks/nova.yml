@@ -1,0 +1,357 @@
+---
+- name: ensure the nova databases exists
+  mysql_db:
+    name: "{{ item }}"
+  with_items:
+    - nova
+    - nova_api
+    - nova_cell0
+  run_once: yes
+  tags:
+    - nova
+    - mysql
+
+- name: ensure the nova mysql user exists
+  mysql_user:
+    name: "{{ openstack_nova_database_username }}"
+    host: "{{ item }}"
+    password: "{{ openstack_nova_database_password }}"
+    priv: "nova.*:ALL,GRANT/nova_api.*:ALL,GRANT/nova_cell0.*:ALL,GRANT"
+    state: present
+  with_items:
+    - localhost
+    - '%'
+  run_once: yes
+  tags:
+    - nova
+    - mysql
+
+- name: ensure the nova user exists in keystone
+  os_user:
+    name: "{{ openstack_nova_service_username }}"
+    password: "{{ openstack_nova_service_password }}"
+    update_password: on_create
+    default_project: service
+    state: present
+    domain: Default
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova user has the admin role in the service project
+  os_user_role:
+    user: "{{ openstack_nova_service_username }}"
+    role: admin
+    project: service
+    state: present
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova service exists in keystone
+  os_keystone_service:
+    name: nova
+    description: OpenStack Compute
+    service_type: compute
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+    state: present
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova endpoints exist in keystone
+  os_keystone_endpoint:
+    service: nova
+    endpoint_interface: "{{ item.interface }}"
+    url: "{{ item.url }}"
+    region: RegionOne
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+    state: present
+  with_items:
+    - interface: public
+      url: "http://{{ ansible_hostname }}:8774/v2.1"
+    - interface: internal
+      url: "http://{{ ansible_hostname }}:8774/v2.1"
+    - interface: admin
+      url: "http://{{ ansible_hostname }}:8774/v2.1"
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova placement user exists in keystone
+  os_user:
+    name: "{{ openstack_nova_placement_username }}"
+    password: "{{ openstack_nova_placement_password }}"
+    update_password: on_create
+    default_project: service
+    state: present
+    domain: Default
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova placement user has the admin role in the service project
+  os_user_role:
+    user: "{{ openstack_nova_placement_username }}"
+    role: admin
+    project: service
+    state: present
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova placement service exists in keystone
+  os_keystone_service:
+    name: placement
+    description: Placement API
+    service_type: placement
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+    state: present
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova placement endpoints exist in keystone
+  os_keystone_endpoint:
+    service: placement
+    endpoint_interface: "{{ item.interface }}"
+    url: "{{ item.url }}"
+    region: RegionOne
+    auth:
+      auth_url: http://{{ ansible_hostname }}:5000/v3
+      username: admin
+      password: '{{ openstack_admin_password }}'
+      project_name: admin
+      project_domain_name: Default
+      user_domain_name: Default
+    state: present
+  with_items:
+    - interface: public
+      url: "http://{{ ansible_hostname }}:8778"
+    - interface: internal
+      url: "http://{{ ansible_hostname }}:8778"
+    - interface: admin
+      url: "http://{{ ansible_hostname }}:8778"
+  environment:
+    OS_IDENTITY_API_VERSION: 3
+  run_once: yes
+  tags:
+    - nova
+    - keystone
+
+- name: ensure the nova packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nova-api
+    - nova-conductor
+    - nova-consoleauth
+    - nova-novncproxy
+    - nova-scheduler
+    - nova-placement-api
+  tags:
+    - nova
+
+- name: ensure nova is configured
+  ini_file:
+    dest: /etc/nova/nova.conf
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: api_database
+      option: connection
+      value: "{{ openstack_nova_api_database_url }}"
+    - section: database
+      option: connection
+      value: "{{ openstack_nova_database_url }}"
+    - section: DEFAULT
+      option: transport_url
+      value: rabbit://{{ openstack_rabbitmq_username }}:{{ openstack_rabbitmq_password }}@{{ openstack_rabbitmq_host }}
+    - section: api
+      option: auth_strategy
+      value: keystone
+    - section: keystone_authtoken
+      option: auth_uri
+      value: "http://{{ ansible_hostname }}:5000"
+    - section: keystone_authtoken
+      option: auth_url
+      value: "http://{{ ansible_hostname }}:5000"
+    - section: keystone_authtoken
+      option: memcached_servers
+      value: "{{ ansible_hostname }}:11211"
+    - section: keystone_authtoken
+      option: auth_type
+      value: password
+    - section: keystone_authtoken
+      option: project_domain_name
+      value: Default
+    - section: keystone_authtoken
+      option: user_domain_name
+      value: Default
+    - section: keystone_authtoken
+      option: project_name
+      value: service
+    - section: keystone_authtoken
+      option: username
+      value: "{{ openstack_nova_service_username }}"
+    - section: keystone_authtoken
+      option: password
+      value: "{{ openstack_nova_service_password }}"
+    - section: DEFAULT
+      option: my_ip
+      value: "{{ ansible_default_ipv4.address }}"
+    - section: DEFAULT
+      option: use_neutron
+      value: True
+    - section: DEFAULT
+      option: firewall_driver
+      value: nova.virt.firewall.NoopFirewallDriver
+    - section: vnc
+      option: enabled
+      value: True
+    - section: vnc
+      option: vncserver_listen
+      value: $my_ip
+    - section: vnc
+      option: vncserver_proxyclient_address
+      value: $my_ip
+    - section: glance
+      option: api_servers
+      value: "http://{{ ansible_hostname }}:9292"
+    - section: oslo_concurrency
+      option: lock_path
+      value: /var/lib/nova/tmp
+    - section: placement
+      option: os_region_name
+      value: RegionOne
+    - section: placement
+      option: project_domain_name
+      value: Default
+    - section: placement
+      option: project_name
+      value: service
+    - section: placement
+      option: auth_type
+      value: password
+    - section: placement
+      option: user_domain_name
+      value: default
+    - section: placement
+      option: auth_url
+      value: "http://{{ ansible_hostname }}:35357/v3"
+    - section: placement
+      option: username
+      value: "{{ openstack_nova_placement_username }}"
+    - section: placement
+      option: password
+      value: "{{ openstack_nova_placement_password }}"
+  notify:
+    - restart nova-api
+    - restart nova-conductor
+    - restart nova-consoleauth
+    - restart nova-novncprocy
+    - restart nova-scheduler
+  tags:
+    - nova
+    - configuration
+
+- name: ensure the nova api database is populated
+  command: nova-manage api_db sync
+  become: yes
+  become_user: nova
+  run_once: yes
+  tags:
+    - nova
+
+- name: ensure the cell0 database is registered
+  command: nova-manage cell_v2 map_cell0
+  become: yes
+  become_user: nova
+  run_once: yes
+  tags:
+    - nova
+
+- name: ensure cell1 exists
+  command: "nova-manage cell_v2 create_cell --name=cell1"
+  become: yes
+  become_user: nova
+  run_once: yes
+  tags:
+    - nova
+
+- name: ensure the nova database is populated
+  command: nova-manage db sync
+  become: yes
+  become_user: nova
+  run_once: yes
+  tags:
+    - nova

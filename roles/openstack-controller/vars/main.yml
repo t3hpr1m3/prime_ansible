@@ -1,3 +1,5 @@
 ---
-openstack_keystone_database_url: "mysql+pymysql://{{ openstack_keystone_database_username }}:{{ openstack_keystone_database_password }}@{{ openstack_database_host }}/{{ openstack_keystone_database_name }}"
-openstack_glance_database_url: "mysql+pymysql://{{ openstack_glance_database_username }}:{{ openstack_glance_database_password }}@{{ openstack_database_host }}/{{ openstack_glance_database_name }}"
+openstack_keystone_database_url: "mysql+pymysql://{{ openstack_keystone_database_username }}:{{ openstack_keystone_database_password }}@{{ openstack_database_host }}/keystone"
+openstack_glance_database_url: "mysql+pymysql://{{ openstack_glance_database_username }}:{{ openstack_glance_database_password }}@{{ openstack_database_host }}/glance"
+openstack_nova_database_url: "mysql+pymysql://{{ openstack_nova_database_username }}:{{ openstack_nova_database_password }}@{{ openstack_database_host }}/nova"
+openstack_nova_api_database_url: "mysql+pymysql://{{ openstack_nova_database_username }}:{{ openstack_nova_database_password }}@{{ openstack_database_host }}/nova_api"

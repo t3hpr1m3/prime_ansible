@@ -14,14 +14,22 @@ openstack_keystone_service_description: OpenStack Identity
 openstack_keystone_log_dir: /var/log/keystone
 
 openstack_database_host: localhost
+openstack_rabbitmq_host: localhost
 
-openstack_keystone_database_name: keystone
 openstack_keystone_database_username: keystone
 openstack_keystone_database_password: CHANGEME
 
 openstack_glance_service_username: glance
 openstack_glance_service_password: CHANGEME
 
-openstack_glance_database_name: glance
 openstack_glance_database_username: glance
 openstack_glance_database_password: CHANGEME
+
+openstack_nova_service_username: nova
+openstack_nova_service_password: CHANGEME
+
+openstack_nova_database_username: nova
+openstack_nova_database_password: CHANGEME
+
+openstack_nova_placement_username: placement
+openstack_nova_placement_password: CHANGEME

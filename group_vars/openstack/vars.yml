@@ -2,9 +2,14 @@
 openstack_mysql_root_password: "{{ vault_openstack_mysql_root_password }}"
 openstack_rabbitmq_password: "{{ vault_openstack_rabbitmq_password }}"
 openstack_database_host: janus
+openstack_rabbitmq_host: janus
 openstack_admin_password: "{{ vault_openstack_admin_password }}"
 
 openstack_keystone_database_password: "{{ vault_openstack_keystone_database_password }}"
 
-openstack_glance_database_password: "{{ vault_openstack_glance_database_password }}"
 openstack_glance_service_password: "{{ vault_openstack_glance_service_password }}"
+openstack_glance_database_password: "{{ vault_openstack_glance_database_password }}"
+
+openstack_nova_service_password: "{{ vault_openstack_nova_service_password }}"
+openstack_nova_database_password: "{{ vault_openstack_nova_database_password }}"
+openstack_nova_placement_password: "{{ vault_openstack_nova_placement_password }}"

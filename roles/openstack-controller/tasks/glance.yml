@@ -1,26 +1,26 @@
 ---
 - name: ensure the glance database exists
   mysql_db:
-    name: "{{ openstack_glance_database_name }}"
+    name: glance
   run_once: yes
   tags:
-    - mysql
     - glance
+    - mysql
 
 - name: ensure the glance mysql user exists
   mysql_user:
     name: '{{ openstack_glance_database_username }}'
     host: '{{ item }}'
     password: '{{ openstack_glance_database_password }}'
-    priv: '{{ openstack_glance_database_name }}.*:ALL,GRANT'
+    priv: 'glance.*:ALL,GRANT'
     state: present
   with_items:
     - localhost
     - '%'
   run_once: yes
   tags:
-    - mysql
     - glance
+    - mysql
 
 - name: ensure the glance user exists in keystone
   os_user:
@@ -41,8 +41,8 @@
     OS_IDENTITY_API_VERSION: 3
   run_once: yes
   tags:
-    - mysql
     - glance
+    - keystone
 
 - name: ensure the glance user has the admin role in the service project
   os_user_role:
@@ -61,8 +61,8 @@
     OS_IDENTITY_API_VERSION: 3
   run_once: yes
   tags:
-    - mysql
     - glance
+    - keystone
 
 - name: ensure the glance service exists in keystone
   os_keystone_service:
@@ -81,8 +81,8 @@
     OS_IDENTITY_API_VERSION: 3
   run_once: yes
   tags:
-    - mysql
     - glance
+    - keystone
 
 - name: ensure the glance endpoints exist in keystone
   os_keystone_endpoint:
@@ -109,8 +109,8 @@
     OS_IDENTITY_API_VERSION: 3
   run_once: yes
   tags:
-    - mysql
     - glance
+    - keystone
 
 - name: ensure the glance packages are installed
   apt:

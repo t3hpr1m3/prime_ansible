@@ -4,3 +4,4 @@
 - import_tasks: rabbitmq.yml
 - import_tasks: keystone.yml
 - import_tasks: glance.yml
+- import_tasks: nova.yml

@@ -1,26 +1,26 @@
 ---
 - name: ensure the keystone database exists
   mysql_db:
-    name: '{{ openstack_keystone_database_name }}'
+    name: keystone
   run_once: yes
   tags:
-    - mysql
     - keystone
+    - mysql
 
 - name: ensure the keystone mysql user exists
   mysql_user:
     name: '{{ openstack_keystone_database_username }}'
     host: '{{ item }}'
     password: '{{ openstack_keystone_database_password }}'
-    priv: '{{ openstack_keystone_database_name }}.*:ALL,GRANT'
+    priv: 'keystone.*:ALL,GRANT'
     state: present
   with_items:
     - localhost
     - '%'
   run_once: yes
   tags:
-    - mysql
     - keystone
+    - mysql
 
 - name: ensure the required packages are installed
   apt:
@@ -72,7 +72,8 @@
   command: keystone-manage db_sync
   become: yes
   become_user: keystone
-
+  tags:
+    - keystone
 
 - name: ensure the fernet keys are configured
   command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone

@@ -8,3 +8,28 @@
   service:
     name: glance-registry
     state: restarted
+
+- name: restart nova-api
+  service:
+    name: nova-api
+    state: restarted
+
+- name: restart nova-conductor
+  service:
+    name: nova-conductor
+    state: restarted
+
+- name: restart nova-consoleauth
+  service:
+    name: nova-consoleauth
+    state: restarted
+
+- name: restart nova-novncprocy
+  service:
+    name: nova-novncproxy
+    state: restarted
+
+- name: restart nova-scheduler
+  service:
+    name: nova-scheduler
+    state: restarted
